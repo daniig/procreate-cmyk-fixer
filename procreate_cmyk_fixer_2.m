@@ -10,10 +10,10 @@ K = 4;
 
 # si la diferencia entre cian-magenta o amarillo-magenta supera este umbral,
 # es que el píxel no es gris (contiene color)
-gray_thresh_cm = uint8(35);
-gray_thresh_ym = gray_thresh_cm;
+gray_thresh_cm = -uint8(20);
+gray_thresh_ym = gray_thresh_cm*0.9;
 # si cian o amarillo superan este umbral, es que están aportando gris
-extra_key_thresh = 100;
+extra_key_thresh = 90;
 
 mkdir("./convertido2");
 
@@ -21,6 +21,7 @@ if(~isfolder("./convertido2"))
   printf("No se ha podido crear la subcarpeta \"convertido\".");
 else
   ficheros_in=glob("*.tiff");
+  # ficheros_in{1} = "test.tiff";
   num_ficheros=size(ficheros_in, 1);
   if(num_ficheros==0)
     printf("No se han encontrado ficheros PNG en esta carpeta.");
@@ -29,9 +30,10 @@ else
       printf(cstrcat(int2str(i), ": ", ficheros_in{i}, "\n"));
       
       I_cmyk_pro = double(imread(ficheros_in{i}));
-      d_cm = abs(I_cmyk_pro(:,:,C)-I_cmyk_pro(:,:,M));
-      d_ym = abs(I_cmyk_pro(:,:,Y)-I_cmyk_pro(:,:,M));
-      is_gray = (d_cm < gray_thresh_cm) & (d_ym < gray_thresh_ym);
+      d_cm = I_cmyk_pro(:,:,C)-I_cmyk_pro(:,:,M);
+      d_ym = I_cmyk_pro(:,:,Y)-I_cmyk_pro(:,:,M);
+      is_gray = ((d_cm > gray_thresh_cm) | (d_ym > gray_thresh_ym)) | ...
+                ((d_cm > 0) | (d_ym > 0));
 
       key = zeros(size(I_cmyk_pro,C),size(I_cmyk_pro,M));
       key(is_gray) = I_cmyk_pro(:,:,M)(is_gray);
